@@ -485,6 +485,10 @@ class Rds(Leaf):
     def can_egress(self):
         return False
 
+    @property
+    def current_az(self):
+        return self._json_blob["AvailabilityZone"]
+
     def set_subnet(self, subnet):
         self._subnet = subnet
         self._arn = self._arn + "." + subnet.local_id

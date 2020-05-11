@@ -336,7 +336,11 @@ def add_node_to_subnets(region, node, nodes):
         for az in vpc.children:
             for subnet in az.children:
                 for node_subnet in node.subnets:
+
                     if node_subnet == subnet.local_id:
+                        if node.node_type in ('rds', 'rds_rr') and node.current_az != subnet.az.local_id:
+                            continue
+                        
                         # Copy the node
                         subnet_node = copy.copy(node)
                         # Set the subnet name on the copy, and potentially a new arn
