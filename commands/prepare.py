@@ -269,7 +269,7 @@ def get_connections(cidrs, vpc, outputfilter):
                         cidrs[cidr].is_used = True
                         add_connection(connections, cidrs[cidr], instance, sg)
                     else:
-                        if cidr == "0.0.0.0/0":
+                        if cidr == "0.0.0.0/0" and outputfilter.get('default_route', True):
                             # Resource is not public, but allows anything to access it,
                             # so mark set all the resources in the VPC as allowing access to it.
                             for source_instance in vpc.leaves:
@@ -781,12 +781,25 @@ def run(arguments):
         dest="node_data",
         action="store_false",
     )
+    parser.add_argument(
+        "--default-route",
+        help="Show default route connections (default)",
+        dest="default_route",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--no-default-route",
+        help="Do not show default route connections",
+        dest="default_route",
+        action="store_false",
+    )
     parser.set_defaults(internal_edges=True)
     parser.set_defaults(inter_rds_edges=False)
     parser.set_defaults(read_replicas=True)
     parser.set_defaults(azs=True)
     parser.set_defaults(collapse_asgs=True)
     parser.set_defaults(node_data=False)
+    parser.set_defaults(default_route=True)
     args = parser.parse_args(arguments)
 
     outputfilter = {}
@@ -814,6 +827,7 @@ def run(arguments):
     outputfilter["collapse_by_tag"] = args.collapse_by_tag
     outputfilter["collapse_asgs"] = args.collapse_asgs
     outputfilter["node_data"] = args.node_data
+    outputfilter["default_route"] = args.default_route
 
     # Read accounts file
     try:
