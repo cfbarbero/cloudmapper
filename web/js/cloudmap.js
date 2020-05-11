@@ -47,7 +47,10 @@ $(window).on('load', function(){
                 name: 'cose-bilkent',
                 nodeDimensionsIncludeLabels: true,
                 tilingPaddingVertical: 10,
-                tilingPaddingHorizontal: 100
+                tilingPaddingHorizontal: 100,
+                nodeRepulsion: 10000,
+                tile: false,
+                animate: false
             },
             style: stylefile[0]
         });
