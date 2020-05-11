@@ -44,13 +44,20 @@ $(window).on('load', function(){
             container: document.getElementById('cy'),
             elements: datafile[0],
             layout: {
-                name: 'cose-bilkent',
+                animate: false,
+                gravity: 0.1,
+                gravityCompound: 0.1,
+                gravityRange: 0.5,
+                gravityRangeCompound: 0.5,
+                name: "cose-bilkent",
+                nestingFactor: 0.5,
                 nodeDimensionsIncludeLabels: true,
-                tilingPaddingVertical: 10,
-                tilingPaddingHorizontal: 100,
-                nodeRepulsion: 10000,
+                nodeRepulsion: 1000000,
+                numIter: 2500,
+                quality: "default",
                 tile: false,
-                animate: false
+                tilingPaddingHorizontal: 100,
+                tilingPaddingVertical: 100
             },
             style: stylefile[0]
         });
