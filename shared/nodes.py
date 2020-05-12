@@ -901,6 +901,18 @@ class Connection(object):
     def target(self):
         return self._target
 
+    @property
+    def ports(self):
+        ports = []
+        ip_permissions = pyjq.all(".[].IpPermissions?[]", self._json)
+        for ip_permission in ip_permissions:
+            if ip_permission['FromPort']==ip_permission['ToPort']:
+                ports.append(ip_permission['FromPort'])
+            else:
+                ports.append(f'{ip_permission["FromPort"]}-{ip_permission["ToPort"]}')
+        
+        return ports
+        
     def __key(self):
         return (self._source.arn, self._target.arn)
 
@@ -921,6 +933,7 @@ class Connection(object):
                 "source": self._source.arn,
                 "target": self._target.arn,
                 "type": "edge",
+                "label": self.ports,
                 "node_data": self._json,
             }
         }
