@@ -335,7 +335,7 @@ def collect(arguments):
                     parameters[parameter["Name"]] = parameter["Value"]
 
                     # Look for any dynamic values (ones that jq parse a file)
-                    if "|" in parameter["Value"]:
+                    if  "|" in str(parameter["Value"]):
                         dynamic_parameter = parameter["Name"]
 
             if runner.get("Custom_collection", False):

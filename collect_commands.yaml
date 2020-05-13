@@ -260,6 +260,11 @@
     Value: ecr-describe-repositories.json|.repositories[]|.repositoryName
 - Service: elasticache
   Request: describe-cache-clusters
+  Parameters:
+  - Name: ShowCacheNodeInfo
+    Value: true
+- Service: elasticache
+  Request: describe-cache-subnet-groups
 - Service: elasticbeanstalk
   Request: describe-applications
 - Service: efs

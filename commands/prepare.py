@@ -48,6 +48,7 @@ from shared.nodes import (
     Lambda,
     Redshift,
     ElasticSearch,
+    ElastiCache,
     Cidr,
     Connection,
 )
@@ -170,6 +171,10 @@ def get_elasticsearch(region):
             es_domains.append(es)
     return es_domains
 
+def get_elasticache(region):
+    clusters = query_aws(
+        region.account, "elasticache-describe-cache-clusters", region.region)
+    return pyjq.all(".CacheClusters[]?", clusters)
 
 def get_sgs(vpc):
     sgs = query_aws(vpc.account, "ec2-describe-security-groups", vpc.region)
@@ -397,6 +402,11 @@ def get_resource_nodes(region, outputfilter):
     # Redshift clusters
     for node_json in get_redshift(region):
         node = Redshift(region, node_json)
+        nodes[node.arn] = node
+
+    # Elasticache clusters
+    for node_json in get_elasticache(region):
+        node = ElastiCache(region, node_json)
         nodes[node.arn] = node
 
     # ElasticSearch clusters

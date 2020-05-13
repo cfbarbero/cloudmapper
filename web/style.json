@@ -265,6 +265,15 @@
         }
     },
     {
+        "selector": "[type = \"elasticache\"]",
+        "css": {
+            "background-opacity": 0,
+            "background-image": "./icons/aws/Amazon-ElastiCache_light-bg.svg",
+            "background-fit": "contain",
+            "background-clip": "none"
+        }
+    },
+    {
         "selector": "[type = \"kinesis\"]",
         "css": {
             "background-opacity": 0,

@@ -847,6 +847,70 @@ class Redshift(Leaf):
         super(Redshift, self).__init__(self._parent, json_blob)
 
 
+class ElastiCache(Leaf):
+    @property
+    def ips(self):
+        return []
+
+    @property
+    def can_egress(self):
+        return False
+
+    @property
+    def subnets(self):
+        # Get the subnets that this cluster can be a part of
+        subnet_group_name = self._json_blob["CacheSubnetGroupName"]
+        subnet_groups_json = query_aws(
+            self.account, "elasticache-describe-cache-subnet-groups", self.region
+        )
+        matched_subnet_group = {}
+        for subnet_group in subnet_groups_json["CacheSubnetGroups"]:
+            if subnet_group_name == subnet_group["CacheSubnetGroupName"]:
+                matched_subnet_group = subnet_group
+        if matched_subnet_group == {}:
+            raise Exception("Could not find the subnet group")
+
+        # Get the IDs of those subnets
+        subnet_ids = []
+        for subnet in matched_subnet_group["Subnets"]:
+            subnet_ids.append(subnet["SubnetIdentifier"])
+
+        # Look through the subnets in the regions for ones that match,
+        # then find those subnets that actually have the IPs for the cluster nodes in them
+        subnets_with_cluster_nodes = []
+        subnets = query_aws(
+            self.account, "ec2-describe-subnets", self.region)
+        for subnet in subnets["Subnets"]:
+            if subnet["SubnetId"] in subnet_ids:
+                # We have a subnet ID that we know the cluster can be part of, now check if there is actually a node there
+                for cluster_node in self._json_blob["CacheNodes"]:
+                    if cluster_node["CustomerAvailabilityZone"] == subnet["AvailabilityZone"]:
+                        subnets_with_cluster_nodes.append(
+                            subnet["SubnetId"])
+
+        return subnets_with_cluster_nodes
+
+    @property
+    def tags(self):
+        # TODO Custom collection is required for the tags because describe-cache-clusters returns a cluster-id,
+        # but getting the tags requires calling `elasticache list-tags --arn ARN` and you have to build the arn from the cluster-id
+        return []
+
+    @property
+    def security_groups(self):
+        return pyjq.all(".SecurityGroups[].SecurityGroupId", self._json_blob)
+
+    def __init__(self, parent, json_blob):
+        self._type = "elasticache"
+
+        self._local_id = json_blob["CacheClusterId"]
+        self._arn = "arn:aws:elasticache:{}:{}:cluster:{}".format(
+            parent.region.name, parent.account.local_id, self._local_id
+        )
+        self._name = truncate(json_blob["CacheClusterId"])
+        super(ElastiCache, self).__init__(parent, json_blob)
+
+
 class ElasticSearch(Leaf):
     @property
     def ips(self):
