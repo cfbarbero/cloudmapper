@@ -24,21 +24,21 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 NProgress.start();
 
 // Prevent arrow keys from scrolling the window
-window.addEventListener("keydown", function(e) {
+window.addEventListener("keydown", function (e) {
     // space and arrow keys
-    if([32, 37, 38, 39, 40].indexOf(e.keyCode) > -1) {
+    if ([32, 37, 38, 39, 40].indexOf(e.keyCode) > -1) {
         e.preventDefault();
     }
 }, false);
 
-$(window).on('load', function(){
+$(window).on('load', function () {
     NProgress.set(0.1);
     akkordion(".akkordion", {});
-    
+
     $.when(
         $.getJSON("./data.json"),
         $.getJSON("./style.json")
-    ).done(function(datafile, stylefile) {
+    ).done(function (datafile, stylefile) {
         loadCytoscape({
             wheelSensitivity: 0.1,
             container: document.getElementById('cy'),
@@ -52,7 +52,7 @@ $(window).on('load', function(){
                 name: "cose-bilkent",
                 nestingFactor: 0.5,
                 nodeDimensionsIncludeLabels: true,
-                nodeRepulsion: 1000000,
+                nodeRepulsion: 1000,
                 numIter: 2500,
                 quality: "default",
                 tile: false,
@@ -62,11 +62,11 @@ $(window).on('load', function(){
             style: stylefile[0]
         });
     })
-    .fail(function(e) {
-        if (e.status == 404) {
-            alert("Failed to fetch data!\nPlease run cloudmapper.py prepare before using webserver");
-        }
-    });
+        .fail(function (e) {
+            if (e.status == 404) {
+                alert("Failed to fetch data!\nPlease run cloudmapper.py prepare before using webserver");
+            }
+        });
 }); // Page loaded
 
 
@@ -87,17 +87,17 @@ function loadCytoscape(options) {
 
     function setEdgeActions() {
         // Do something when an edge is clicked on
-        cy.edges().on('tap', function( e ){
+        cy.edges().on('tap', function (e) {
             // This function is just to get us to directtap
-            var eventIsDirect = e.target.same( this ); // don't use 2.x cyTarget
-            
-            if( eventIsDirect ){
+            var eventIsDirect = e.target.same(this); // don't use 2.x cyTarget
+
+            if (eventIsDirect) {
                 this.emit('directtap');
             }
-        }).on('directtap', function( e ){
+        }).on('directtap', function (e) {
             // An edge has been click on
             ni.describe(this);
-            
+
             e.stopPropagation();
         });
         console.log("Setting edge actions");
@@ -116,7 +116,7 @@ function loadCytoscape(options) {
         fisheye: true,
         animate: true
     });
-    
+
     // Add pan and zoom UI control
     cy.panzoom({
         panSpeed: 5,
@@ -131,7 +131,7 @@ function loadCytoscape(options) {
 
     // Add ability to hide nodes and see neighbors
     var api = cy.viewUtilities({
-        neighbor: function(node){
+        neighbor: function (node) {
             return node.closedNeighborhood();
         },
         neighborSelectTime: 1000,
@@ -147,23 +147,23 @@ function loadCytoscape(options) {
         },
         node: {
             unhighlighted: { // Styles for when nodes are unhighlighted.
-                'opacity': 0.3
+                'opacity': 0.1
             }
         }
     });
 
 
     // Increase border width to show nodes with hidden neighbors
-    function thickenBorder(eles){
-        eles.forEach(function( ele ){
+    function thickenBorder(eles) {
+        eles.forEach(function (ele) {
             ele.toggleClass("hiddenNeighbors", true);
         });
         eles.data("thickBorder", true);
         return eles;
     }
     // Decrease border width when hidden neighbors of the nodes become visible
-    function thinBorder(eles){
-        eles.forEach(function( ele ){
+    function thinBorder(eles) {
+        eles.forEach(function (ele) {
             ele.toggleClass("hiddenNeighbors", false);
         });
         eles.removeData("thickBorder");
@@ -204,7 +204,7 @@ function loadCytoscape(options) {
 
     // Save image
     document.getElementById("saveImage").addEventListener("click", function () {
-        var png = cy.png( {
+        var png = cy.png({
             output: 'blob',
             full: true
         });
@@ -213,7 +213,7 @@ function loadCytoscape(options) {
 
     // Export layout
     document.getElementById("exportLayout").addEventListener("click", function () {
-        blob = new Blob([CircularJSON.stringify(cy.json())], {type: "text/plain;charset=utf-8"});
+        blob = new Blob([CircularJSON.stringify(cy.json())], { type: "text/plain;charset=utf-8" });
         saveAs(blob, "layout.json");
     });
 
@@ -233,25 +233,25 @@ function loadCytoscape(options) {
         });
         layout.run();
     }
-    document.getElementById("randomizeLayout").addEventListener("click", function(){
+    document.getElementById("randomizeLayout").addEventListener("click", function () {
         randomizeLayout();
     });
 
     //In below functions, finding the nodes to hide/show are sample specific. 
     //If the sample graph changes, those calculations may also need a change.   
-    
-    $("#hide").click(function (){
+
+    $("#hide").click(function () {
         hideSelectedNodes();
     });
 
     $("#showAll").click(function () {
         var actions = [];
         var nodesWithHiddenNeighbor = cy.nodes("[thickBorder]");
-        actions.push({name: "thinBorder", param: nodesWithHiddenNeighbor});
-        actions.push({name: "show", param: cy.elements()});
-        ur.do("batch", actions);                    
+        actions.push({ name: "thinBorder", param: nodesWithHiddenNeighbor });
+        actions.push({ name: "show", param: cy.elements() });
+        ur.do("batch", actions);
     });
-    
+
 
     $("#showHiddenNeighbors").click(function () {
         // Not used, as you can double-click on a node to see this.
@@ -259,14 +259,14 @@ function loadCytoscape(options) {
         var actions = [];
         var nodesWithHiddenNeighbor = (hiddenEles.neighborhood(":visible").nodes("[thickBorder]"))
             .difference(cy.edges(":hidden").difference(hiddenEles.edges().union(hiddenEles.nodes().connectedEdges())).connectedNodes());
-        actions.push({name: "thinBorder", param: nodesWithHiddenNeighbor});
-        actions.push({name: "show", param: hiddenEles.union(hiddenEles.parent())});
+        actions.push({ name: "thinBorder", param: nodesWithHiddenNeighbor });
+        actions.push({ name: "show", param: hiddenEles.union(hiddenEles.parent()) });
         nodesWithHiddenNeighbor = hiddenEles.nodes().edgesWith(cy.nodes(":hidden").difference(hiddenEles.nodes()))
             .connectedNodes().intersection(hiddenEles.nodes());
-        actions.push({name: "thickenBorder", param: nodesWithHiddenNeighbor}); 
-        cy.undoRedo().do("batch", actions);                
+        actions.push({ name: "thickenBorder", param: nodesWithHiddenNeighbor });
+        cy.undoRedo().do("batch", actions);
     });
-    
+
 
     // Double-tapping a node makes it's hidden neighbors reappear
     var tappedBefore;
@@ -283,17 +283,17 @@ function loadCytoscape(options) {
         } else {
             tappedBefore = tappedNow;
         }
-    });  
+    });
     cy.on('doubleTap', 'node', function (event) {
         var hiddenEles = cy.$(":selected").neighborhood().filter(':hidden');
         var actions = [];
         var nodesWithHiddenNeighbor = (hiddenEles.neighborhood(":visible").nodes("[thickBorder]"))
             .difference(cy.edges(":hidden").difference(hiddenEles.edges().union(hiddenEles.nodes().connectedEdges())).connectedNodes());
-        actions.push({name: "thinBorder", param: nodesWithHiddenNeighbor});
-        actions.push({name: "show", param: hiddenEles.union(hiddenEles.parent())});
+        actions.push({ name: "thinBorder", param: nodesWithHiddenNeighbor });
+        actions.push({ name: "show", param: hiddenEles.union(hiddenEles.parent()) });
         nodesWithHiddenNeighbor = hiddenEles.nodes().edgesWith(cy.nodes(":hidden").difference(hiddenEles.nodes()))
             .connectedNodes().intersection(hiddenEles.nodes());
-        actions.push({name: "thickenBorder", param: nodesWithHiddenNeighbor}); 
+        actions.push({ name: "thickenBorder", param: nodesWithHiddenNeighbor });
         cy.undoRedo().do("batch", actions);
         setEdgeActions();
     });
@@ -301,7 +301,7 @@ function loadCytoscape(options) {
     var highlight = false;
     $("#highlightNeighbors").click(function () {
         highlight = true;
-        if(cy.$(":selected").length > 0)
+        if (cy.$(":selected").length > 0)
             ur.do("highlightNeighbors", cy.$(":selected"));
     });
 
@@ -310,14 +310,17 @@ function loadCytoscape(options) {
         ur.do("removeHighlights");
     });
 
-    $("#search").click(function () {
-        var text = $("#toSearch").val();
-        cy.elements().search(text).highlightNeighbors();
+    $("#search").click(function () { searchNodes(); });
+    $("#toSearch").keypress(function (event) {
+        var keycode = (event.keyCode ? event.keyCode : event.which);
+        if (keycode == '13') {
+            searchNodes();
+        }
     });
-                
+
     // Undo redo
     document.addEventListener("keydown", function (e) {
-        if (e.ctrlKey){
+        if (e.ctrlKey) {
             if (e.which === 90)
                 ur.undo();
             else if (e.which === 89)
@@ -329,17 +332,17 @@ function loadCytoscape(options) {
     var ni = cy.ni = cy.nodeInfo();
 
     // Do something when a node is clicked on
-    cy.nodes().on('tap', function( e ){
+    cy.nodes().on('tap', function (e) {
         // This function is just to get us to directtap
-        var eventIsDirect = e.target.same( this ); // don't use 2.x cyTarget
-        
-        if( eventIsDirect ){
+        var eventIsDirect = e.target.same(this); // don't use 2.x cyTarget
+
+        if (eventIsDirect) {
             this.emit('directtap');
         }
-    }).on('directtap', function( e ){
+    }).on('directtap', function (e) {
         // A node has been click on
         ni.describe(this);
-        
+
         e.stopPropagation();
     });
 
@@ -350,34 +353,34 @@ function loadCytoscape(options) {
     //
 
     // Pan
-    Mousetrap.bind('left', function(e) { cy.panBy({x: 10, y:0}); return false; });
-    Mousetrap.bind('right', function(e) { cy.panBy({x: -10, y:0}); return false; });
-    Mousetrap.bind('up', function(e) { cy.panBy({x: 0, y:10}); return false; });
-    Mousetrap.bind('down', function(e) { cy.panBy({x: 0, y:-10}); return false; });
-    
+    Mousetrap.bind('left', function (e) { cy.panBy({ x: 10, y: 0 }); return false; });
+    Mousetrap.bind('right', function (e) { cy.panBy({ x: -10, y: 0 }); return false; });
+    Mousetrap.bind('up', function (e) { cy.panBy({ x: 0, y: 10 }); return false; });
+    Mousetrap.bind('down', function (e) { cy.panBy({ x: 0, y: -10 }); return false; });
+
     // Zoom
-    Mousetrap.bind(['-', '_'], function() { 
-        cy.zoom( {
-            level: cy.zoom()*0.9,
-            renderedPosition: { x: cy.width()/2, y: cy.height()/2 }
-        }); 
+    Mousetrap.bind(['-', '_'], function () {
+        cy.zoom({
+            level: cy.zoom() * 0.9,
+            renderedPosition: { x: cy.width() / 2, y: cy.height() / 2 }
+        });
     });
-    Mousetrap.bind(['=', '+'], function() {
-        cy.zoom( {
-            level: cy.zoom()*1.2,
-            renderedPosition: { x: cy.width()/2, y: cy.height()/2 }
-        }); 
+    Mousetrap.bind(['=', '+'], function () {
+        cy.zoom({
+            level: cy.zoom() * 1.2,
+            renderedPosition: { x: cy.width() / 2, y: cy.height() / 2 }
+        });
     });
 
     // Collapse selected nodes
-    Mousetrap.bind('c', function() {
+    Mousetrap.bind('c', function () {
         ur.do("collapseRecursively", {
             nodes: cy.$(":selected")
         });
     });
 
     // Expand selected nodes
-    Mousetrap.bind('e', function() {
+    Mousetrap.bind('e', function () {
         ur.do("expandRecursively", {
             nodes: cy.$(":selected")
         });
@@ -385,15 +388,15 @@ function loadCytoscape(options) {
     });
 
     // Randomize layout
-    Mousetrap.bind('r', function() {
+    Mousetrap.bind('r', function () {
         randomizeLayout();
     });
 
     // Highlight neighbors
-    Mousetrap.bind('h', function() {
+    Mousetrap.bind('h', function () {
         if (!highlight) {
             highlight = true;
-            if(cy.$(":selected").length > 0)
+            if (cy.$(":selected").length > 0)
                 ur.do("highlightNeighbors", cy.$(":selected"));
         } else {
             highlight = false;
@@ -402,7 +405,7 @@ function loadCytoscape(options) {
     });
 
     // Delete
-    Mousetrap.bind('d', function() {
+    Mousetrap.bind('d', function () {
         hideSelectedNodes();
     });
 
@@ -411,29 +414,37 @@ function loadCytoscape(options) {
 }
 
 function hideSelectedNodes() {
-    var actions = [];                    
-    var nodesToHide = cy.$(":selected").add(cy.$(":selected").nodes().descendants());                  
+    var actions = [];
+    var nodesToHide = cy.$(":selected").add(cy.$(":selected").nodes().descendants());
     var nodesWithHiddenNeighbor = cy.edges(":hidden").connectedNodes().intersection(nodesToHide);
-    actions.push({name: "thinBorder", param: nodesWithHiddenNeighbor});
-    actions.push({name: "hide", param: nodesToHide});                    
+    actions.push({ name: "thinBorder", param: nodesWithHiddenNeighbor });
+    actions.push({ name: "hide", param: nodesToHide });
     nodesWithHiddenNeighbor = nodesToHide.neighborhood(":visible")
         .nodes().difference(nodesToHide).difference(cy.nodes("[thickBorder]"));
-    actions.push({name: "thickenBorder", param: nodesWithHiddenNeighbor}); 
+    actions.push({ name: "thickenBorder", param: nodesWithHiddenNeighbor });
     cy.undoRedo().do("batch", actions);
 }
-
-
 
 function importLayout() {
     var f = document.getElementById("fileUpload").files[0];
     var reader = new FileReader();
     reader.readAsText(f, "UTF-8");
-    reader.onload = function(evt) {
+    reader.onload = function (evt) {
         var fileString = evt.target.result;
         //console.log(fileString);
         options = JSON.parse(fileString);
         options.container = document.getElementById('cy');
-        options.layout = {name: 'preset'};
+        options.layout = { name: 'preset' };
         loadCytoscape(options);
     };
+}
+
+function searchNodes() {
+    var text = $("#toSearch").val();
+    var nodes = cy.$(text);
+    if (nodes.length < cy.nodes().length) {
+        nodes.select();
+        console.log('selecting %s nodes', nodes.length)
+    }
+    // api.highlight(nodes);
 }

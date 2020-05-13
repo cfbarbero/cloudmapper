@@ -210,6 +210,17 @@ class Node(object):
         elif self.parent:
             response["data"]["parent"] = self.parent.arn
 
+        try:
+            tag_list = []
+            for tag in self.tags:
+                response["data"]["Tag_"+tag["Key"]] = tag["Value"]
+                tag_list.append(tag["Key"]+"="+tag["Value"])
+            response["data"]["tags"] = tag_list
+
+        except Exception:
+            # If the keys in tag don't exist, just return the default
+            pass
+
         return response
 
 
@@ -225,7 +236,8 @@ class Account(Node):
 class Region(Node):
     def __init__(self, parent, json_blob):
         self._local_id = json_blob["RegionName"]
-        self._arn = "arn:aws::{}:{}:".format(self.local_id, parent.account.local_id)
+        self._arn = "arn:aws::{}:{}:".format(
+            self.local_id, parent.account.local_id)
         self._name = json_blob["RegionName"]
         self._type = "region"
         super(Region, self).__init__(parent, json_blob)
@@ -251,7 +263,8 @@ class Vpc(Node):
         self._arn = "arn:aws::{}:{}:vpc/{}".format(
             parent.region.name, parent.account.local_id, self._local_id
         )
-        self._name = get_name(json_blob, "VpcId") + " (" + json_blob["CidrBlock"] + ")"
+        self._name = get_name(json_blob, "VpcId") + \
+            " (" + json_blob["CidrBlock"] + ")"
         self._type = "vpc"
 
         self._peering_connections = []
@@ -281,7 +294,8 @@ class Subnet(Node):
             parent.region.name, parent.account.local_id, self._local_id
         )
         self._name = (
-            get_name(json_blob, "SubnetId") + " (" + json_blob["CidrBlock"] + ")"
+            get_name(json_blob, "SubnetId") +
+            " (" + json_blob["CidrBlock"] + ")"
         )
         self._type = "subnet"
         super(Subnet, self).__init__(parent, json_blob)
@@ -346,7 +360,8 @@ class Ec2(Leaf):
         collapse_by_tag_value = []
         if collapse_by_tag:
             collapse_by_tag_value = pyjq.all(
-                '.Tags[]? | select(.Key == "{}") | .Value'.format(collapse_by_tag),
+                '.Tags[]? | select(.Key == "{}") | .Value'.format(
+                    collapse_by_tag),
                 json_blob,
             )
 
@@ -592,7 +607,8 @@ class VpcEndpoint(Leaf):
 
         # The ServiceName looks like com.amazonaws.us-east-1.sqs
         # So I want the last section, "sqs"
-        self._name = json_blob["ServiceName"][json_blob["ServiceName"].rfind(".") + 1 :]
+        self._name = json_blob["ServiceName"][json_blob["ServiceName"].rfind(
+            ".") + 1:]
 
         if json_blob["VpcEndpointType"] == "Gateway":
             # The Gateway Endpoints don't live in subnets and don't have Security Groups.
@@ -635,7 +651,8 @@ class Ecs(Leaf):
                     if interface["NetworkInterfaceId"] == eni:
 
                         # Get the public IP, if it exists
-                        public_ip = interface.get("Association", {}).get("PublicIp", "")
+                        public_ip = interface.get(
+                            "Association", {}).get("PublicIp", "")
                         if public_ip != "":
                             ips.append(public_ip)
 
@@ -778,7 +795,8 @@ class Redshift(Leaf):
             # Look through the subnets in the regions for ones that match,
             # then find those subnets that actually have the IPs for the cluster nodes in them
             subnets_with_cluster_nodes = []
-            subnets = query_aws(self.account, "ec2-describe-subnets", self.region)
+            subnets = query_aws(
+                self.account, "ec2-describe-subnets", self.region)
             for subnet in subnets["Subnets"]:
                 if subnet["SubnetId"] in subnet_ids:
                     # We have a subnet ID that we know the cluster can be part of, now check if there is actually a node there
@@ -786,7 +804,8 @@ class Redshift(Leaf):
                         if IPAddress(cluster_node["PrivateIPAddress"]) in IPNetwork(
                             subnet["CidrBlock"]
                         ):
-                            subnets_with_cluster_nodes.append(subnet["SubnetId"])
+                            subnets_with_cluster_nodes.append(
+                                subnet["SubnetId"])
 
             return subnets_with_cluster_nodes
 
@@ -906,13 +925,14 @@ class Connection(object):
         ports = []
         ip_permissions = pyjq.all(".[].IpPermissions?[]", self._json)
         for ip_permission in ip_permissions:
-            if ip_permission['FromPort']==ip_permission['ToPort']:
+            if ip_permission['FromPort'] == ip_permission['ToPort']:
                 ports.append(ip_permission['FromPort'])
             else:
-                ports.append(f'{ip_permission["FromPort"]}-{ip_permission["ToPort"]}')
-        
+                ports.append(
+                    f'{ip_permission["FromPort"]}-{ip_permission["ToPort"]}')
+
         return ports
-        
+
     def __key(self):
         return (self._source.arn, self._target.arn)
 

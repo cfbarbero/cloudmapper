@@ -30,7 +30,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
         var _instance = {};
 
-        cytoscape('core', 'nodeInfo', function (options) { 
+        cytoscape('core', 'nodeInfo', function (options) {
             nodeInfo.apply(this, [options, cytoscape, $]);
             return _instance;
         });
@@ -45,7 +45,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
                 if (nodeLocation.children().length != 0) {
                     nodeLocation.prepend($('<span class="nodeParentSeparater"> &gt; </span>'));
                 }
-                nodeLocation.prepend($('<span class="nodeParent nodeLink" data-internalid="'+p.data().id+'">'+p.data().name+'</span>'));
+                nodeLocation.prepend($('<span class="nodeParent nodeLink" data-internalid="' + p.data().id + '">' + p.data().name + '</span>'));
                 p = p.parent();
             }
             // Ensure something is there
@@ -57,59 +57,68 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
             var summary = $('#Summary');
             summary.empty();
             if (n.data().type == "edge") {
-                summary.append('<span class="label">Source:</span><span> '+n.data().source+'</span><br>');
-                summary.append('<span class="label">Target:</span><span> '+n.data().target+'</span><br>');
+                summary.append('<span class="label">Source:</span><span> ' + n.data().source + '</span><br>');
+                summary.append('<span class="label">Target:</span><span> ' + n.data().target + '</span><br>');
             } else {
-                summary.append('<span class="label">Type:</span><span> '+n.data().type+'</span><br>');
-                summary.append('<span class="label">ID:</span><span> '+n.data().local_id+'</span><br>');
-                summary.append('<span class="label">Name:</span><span> '+n.data().name+'</span><br>');
+                summary.append('<span class="label">Type:</span><span> ' + n.data().type + '</span><br>');
+                summary.append('<span class="label">ID:</span><span> ' + n.data().local_id + '</span><br>');
+                summary.append('<span class="label">Name:</span><span> ' + n.data().name + '</span><br>');
             }
-            
+
             var details = $('#Details');
             if (typeof n.data().node_data !== 'undefined') {
                 details.empty();
-                details.append('<pre id="nodeDetails" class="frame">'+JSON.stringify(n.data().node_data, null, 4)+'</pre>');
+                details.append('<pre id="nodeDetails" class="frame">' + JSON.stringify(n.data().node_data, null, 4) + '</pre>');
+            }
+
+            if (n.data().tags) {
+                $('#Tags').empty().append('<span class="label tagsLink" data-internalid="' + n.id() + '">Tags:</span><br>');
+                var nodeTagsList = $('<ul></ul>');
+                n.data().tags.forEach(function (tag) {
+                    nodeTagsList.append($('<li>' + tag + '</li>'));
+                });
+                $('#Tags').append(nodeTagsList);
             }
 
 
-            $('#Neighbors').empty().append('<span class="label neighborLink" data-internalid="'+n.id()+'">Neighbors:</span><br>');
+            $('#Neighbors').empty().append('<span class="label neighborLink" data-internalid="' + n.id() + '">Neighbors:</span><br>');
             var nodeNeighborsList = $('<ul></ul>');
             n.neighborhood().forEach(function (ele) {
                 if (ele.isNode()) {
-                    nodeNeighborsList.append($('<li class="nodeNeighbor nodeLink" data-internalid="'+ele.id()+'">'+ele.data().name+'</li>'));
+                    nodeNeighborsList.append($('<li class="nodeNeighbor nodeLink" data-internalid="' + ele.id() + '">' + ele.data().name + '</li>'));
                 }
             });
             $('#Neighbors').append(nodeNeighborsList);
 
-            $('#Siblings').empty().append('<span class="label siblingLink" data-internalid="'+n.id()+'">Siblings:</span><br>');
+            $('#Siblings').empty().append('<span class="label siblingLink" data-internalid="' + n.id() + '">Siblings:</span><br>');
             var nodeSiblingsList = $('<ul></ul>');
             n.siblings().forEach(function (ele) {
                 if (ele.isNode()) {
-                    nodeSiblingsList.append($('<li class="nodeSibling nodeLink" data-internalid="'+ele.id()+'">'+ele.data().name+'</li>'));
+                    nodeSiblingsList.append($('<li class="nodeSibling nodeLink" data-internalid="' + ele.id() + '">' + ele.data().name + '</li>'));
                 }
             });
             $('#Siblings').append(nodeSiblingsList);
 
-            $('#Children').empty().append('<span class="label childLink" data-internalid="'+n.id()+'">Children:</span><br>');
+            $('#Children').empty().append('<span class="label childLink" data-internalid="' + n.id() + '">Children:</span><br>');
             var nodeChildrenList = $('<ul></ul>');
             n.children().forEach(function (ele) {
                 if (ele.isNode()) {
-                    nodeChildrenList.append($('<li class="nodeChild nodeLink" data-internalid="'+ele.id()+'">'+ele.data().name+'</li>'));
+                    nodeChildrenList.append($('<li class="nodeChild nodeLink" data-internalid="' + ele.id() + '">' + ele.data().name + '</li>'));
                 }
             });
             $('#Children').append(nodeChildrenList);
 
 
             // Make text for nodes clickable
-            var linkClick = function(e) {
+            var linkClick = function (e) {
                 var id = e.target.dataset.internalid;
 
                 // Unselect the currently selected node
-                cyRef.nodes().forEach(function(n) { n.unselect(); });
+                cyRef.nodes().forEach(function (n) { n.unselect(); });
 
                 // Find the node we have an ID for
                 var n = cyRef.nodes().getElementById(id);
-                
+
                 if ($.inArray("neighborLink", e.target.classList) > 0) {
                     n.neighborhood().forEach(function (ele) {
                         ele.select();
